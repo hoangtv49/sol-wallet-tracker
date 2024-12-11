@@ -48,7 +48,7 @@ Please provide the following details:
 
 <b>Example:</b>
 
-10
+10%
 15 minutes
 0x1234567890abcdef
 0xabcdef1234567890`,
@@ -67,7 +67,7 @@ Please provide the following details:
       } = ctx as any;
 
       const configs = text.split("\n");
-      const percent = configs[0];
+      const percent = configs[0].split("%")[0];
       const durations = configs[1];
       const addresses = configs.slice(2);
 
@@ -78,17 +78,23 @@ Please provide the following details:
         userName: username,
         watchLists: addresses,
       });
+
+      ctx.reply("Watch list saved. Type /watchlist to view.");
     });
   }
 
   private _handleGetWatchList() {
     this.bot.command("watchlist", async (ctx) => {
-      console.log(ctx);
-      // const { user, watchList } = await this._userService.getWatchList(
-      //   ctx.message.from.id as any
-      // );
-      // console.log(watchList, user);
-      // // ctx.reply(JSON.stringify(watchList));
+      const { user, watchList } = await this._userService.getWatchList(
+        ctx.message.from.id as any
+      );
+
+      if (!user) ctx.reply("Watch list is empty.");
+      ctx.reply(`
+${user.percent}%
+${user.durations}
+${watchList.map((w) => w.address).join("\n")}
+`);
     });
   }
 
@@ -96,7 +102,8 @@ Please provide the following details:
     this.bot.command("clear", async (ctx) => {
       const user = await User.findOne({ chatId: ctx.from.id }).exec();
 
-      WatchList.deleteMany({ user: user._id }).exec();
+      if (user) WatchList.deleteMany({ user: user._id }).exec();
+
       ctx.reply("Watch list cleared.");
     });
   }
