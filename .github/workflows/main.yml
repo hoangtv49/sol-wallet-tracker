@@ -4,4 +4,8 @@ jobs:
   deploy-master:
     runs-on: hoangtv-asus
     steps:
-      - run: node -v
+      - uses: actions/checkout@v2
+      - name: Copy Code
+        run: rm -rf .git && cp -r ./ ~/deploy/sol-wallets-tracker
+      - name: Deploy
+        run: cd ~/deploy/sol-wallets-tracker && docker compose up -d --build

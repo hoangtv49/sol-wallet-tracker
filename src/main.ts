@@ -16,7 +16,9 @@ class Crawler {
 
   private readonly _blockSet = new Set<number>();
   constructor() {
-    console.log(new Date().toISOString() + " Constructor " + this.constructor.name);
+    console.log(
+      new Date().toISOString() + " Constructor " + this.constructor.name
+    );
 
     this._telegrafBot = new TelegrafBot();
     this._telegramBot = new TelegramBot();

@@ -6,7 +6,15 @@ services:
       - 27017:27017
     restart: always
     volumes:
-      - ./docker-data:/data/db
+      - ~/docker-data/sol-wallets-tracker/mongodb:/data/db
     environment:
-      MONGO_INITDB_ROOT_USERNAME:  ${DB_USERNAME}
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+
+  app:
+    container_name: sol-wallets-tracker-app
+    build: .
+    restart: always
+    depends_on:
+      - mongodb
+    tty: true
