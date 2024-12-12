@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema(
     chatId: { type: String, required: true },
     percent: { type: Number, required: true },
     durations: { type: String, required: true },
-    watchLists: { type: Schema.Types.ObjectId, ref: "WatchList" },
   },
   { timestamps: true }
 );

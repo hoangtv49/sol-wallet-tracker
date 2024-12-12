@@ -30,6 +30,9 @@ export class UserService {
 
   public async getWatchList(chatId: string) {
     const user = await User.findOne({ chatId });
+
+    if (!user) return { user: null, watchList: [] };
+
     const watchList = await WatchList.find({ user: user._id })
       .populate({ path: "user" })
       .exec();

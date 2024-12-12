@@ -4,7 +4,7 @@ export class TelegramBot {
   private _bot: Telegram;
 
   constructor() {
-    console.log("Constructor " + this.constructor.name);
+    console.log(new Date().toISOString() + " Constructor " + this.constructor.name);
 
     this._initBot();
     this._initCommand();

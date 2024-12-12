@@ -1,12 +1,12 @@
 services:
   mongodb:
     container_name: sol-wallets-tracker-mongo
-    image: bitnami/mongodb:8.0.4
+    image: mongo:8.0.4
     ports:
       - 27017:27017
+    restart: always
     volumes:
       - ./docker-data:/data/db
     environment:
-      - MONGODB_ROOT_USER=${MONGODB_ROOT_USER}
-      - MONGODB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
-      - MONGODB_DATABASE=${MONGODB_DATABASE}
+      MONGO_INITDB_ROOT_USERNAME:  ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}

@@ -9,7 +9,7 @@ export class TelegrafBot {
   private _userService: UserService;
 
   constructor() {
-    console.log("Constructor " + this.constructor.name);
+    console.log(new Date().toISOString() + " Constructor " + this.constructor.name);
     this._userService = new UserService();
     this._initBot();
     this._handleMessageEvent();
@@ -89,7 +89,11 @@ Please provide the following details:
         ctx.message.from.id as any
       );
 
-      if (!user) ctx.reply("Watch list is empty.");
+      if (!watchList.length) {
+        ctx.reply("Watch list is empty.");
+        return;
+      }
+
       ctx.reply(`
 ${user.percent}%
 ${user.durations}
