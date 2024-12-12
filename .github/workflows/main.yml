@@ -1,0 +1,7 @@
+name: deploy
+on: [push]
+jobs:
+  deploy-master:
+    runs-on: hoangtv-asus
+    steps:
+      - run: node -v
