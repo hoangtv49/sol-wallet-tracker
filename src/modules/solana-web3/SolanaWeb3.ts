@@ -101,7 +101,7 @@ export class SolanaWeb3 {
   }
 
   public async listenOnLogs(watchList: any) {
-    let pubKey;
+    let pubKey: any;
 
     try {
       pubKey = new PublicKey(watchList.address);
@@ -111,46 +111,48 @@ export class SolanaWeb3 {
 
     if (!pubKey) return;
 
-    this._connection.onLogs(pubKey, async (logs) => {
-      const signature = logs.signature;
+    console.log(pubKey.toString());
 
-      if (logs.err) return;
+    this._connection.onLogs(
+      pubKey,
+      async (logs) => {
+        const signature = logs.signature;
 
-      const transfer = logs.logs.filter((log) => log.includes("Transfer"));
+        if (logs.err) return;
 
-      if (!transfer.length) return;
-
-      const tx = await this._connection.getParsedTransaction(signature, {
-        commitment: "finalized",
-        maxSupportedTransactionVersion: 0,
-      });
-
-      tx?.meta?.postTokenBalances
-        ?.filter(
-          (b) =>
-            b.owner === watchList.address &&
-            b.mint !== "So11111111111111111111111111111111111111112"
-        )
-        .map(async (balance) => {
-          console.log(
-            balance.owner,
-            balance.mint,
-            new Date(tx.blockTime * 1000)
-          );
-          TxLogs.findOneAndUpdate(
-            {
-              watchList: watchList.address,
-              address: balance.mint,
-            },
-            {
-              $set: {
-                address: balance.mint,
-                updatedAt: new Date(tx.blockTime * 1000),
-              },
-            },
-            { upsert: true }
-          ).exec();
+        const tx = await this._connection.getParsedTransaction(signature, {
+          commitment: "finalized",
+          maxSupportedTransactionVersion: 0,
         });
-    });
+
+        tx?.meta?.postTokenBalances
+          ?.filter(
+            (b) =>
+              b.owner === watchList.address &&
+              b.mint !== "So11111111111111111111111111111111111111112"
+          )
+          .map(async (balance) => {
+            console.log(
+              balance.owner,
+              balance.mint,
+              new Date(tx.blockTime * 1000)
+            );
+            TxLogs.findOneAndUpdate(
+              {
+                watchList: watchList.address,
+                address: balance.mint,
+              },
+              {
+                $set: {
+                  address: balance.mint,
+                  updatedAt: new Date(tx.blockTime * 1000),
+                },
+              },
+              { upsert: true }
+            ).exec();
+          });
+      },
+      "finalized"
+    );
   }
 }
