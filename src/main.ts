@@ -14,7 +14,6 @@ class Crawler {
   private readonly _telegrafBot: TelegrafBot;
   private readonly _solanaWeb3: SolanaWeb3;
 
-  private readonly _blockSet = new Set<number>();
   constructor() {
     console.log(
       new Date().toISOString() + " Constructor " + this.constructor.name
@@ -27,13 +26,18 @@ class Crawler {
 
   public async start() {
     await this._initDBConnection();
-    this._solanaWeb3.updateLastBlockHeight(this._blockSet);
-    setInterval(
-      () => this._solanaWeb3.updateLastBlockHeight(this._blockSet),
-      5000
-    );
-    setInterval(() => this._solanaWeb3.checkTransactions(this._blockSet), 2500);
+
+    const watchLists = await WatchList.find({});
+
+    if (watchLists.length) {
+      for (const watchList of watchLists) {
+        this._solanaWeb3.listenOnLogs(watchList);
+      }
+    }
+
+    this._cleanUpLogs();
     setInterval(() => this._handlePushNotification(), 5000);
+    setInterval(() => this._cleanUpLogs(), 60000);
   }
 
   private async _initDBConnection() {
@@ -44,6 +48,20 @@ class Crawler {
     } catch (e) {
       console.log(e);
     }
+  }
+
+  private async _cleanUpLogs() {
+    const users = await User.find({});
+    users.map(async (user) => {
+      const { durations } = user;
+      const [time, unit] = durations.split(" ") as [
+        number,
+        "seconds" | "minutes" | "hours"
+      ];
+      await TxLogs.deleteMany({
+        updatedAt: { $lt: dayjs().subtract(time, unit).toDate() },
+      });
+    });
   }
 
   private async _handlePushNotification() {

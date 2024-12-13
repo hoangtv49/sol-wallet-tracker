@@ -1,4 +1,5 @@
-import { Connection as SolConnection } from "@solana/web3.js";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { PublicKey, Connection as SolConnection } from "@solana/web3.js";
 import WatchList from "../../models/watchlist.model";
 import TxLogs from "../../models/tx-log.model";
 
@@ -6,7 +7,9 @@ export class SolanaWeb3 {
   private _connection: SolConnection;
 
   constructor() {
-    console.log(new Date().toISOString() + " Constructor " + this.constructor.name);
+    console.log(
+      new Date().toISOString() + " Constructor " + this.constructor.name
+    );
 
     this._connection = new SolConnection(
       "https://solana-rpc.publicnode.com",
@@ -95,5 +98,43 @@ export class SolanaWeb3 {
         console.log("checkTransactions", error);
       }
     });
+  }
+
+  public async listenOnLogs(watchList: any) {
+    this._connection.onLogs(
+      new PublicKey(watchList.address),
+
+      async (logs) => {
+        const signature = logs.signature;
+
+        const tx = await this._connection.getParsedTransaction(signature, {
+          commitment: "confirmed",
+          maxSupportedTransactionVersion: 0,
+        });
+        console.log(logs.signature, new Date(tx?.blockTime * 1000));
+
+        tx?.meta?.postTokenBalances
+          ?.filter(
+            (b) =>
+              b.owner === watchList.address &&
+              b.mint !== "So11111111111111111111111111111111111111112"
+          )
+          .map(async (balance) => {
+            TxLogs.findOneAndUpdate(
+              {
+                watchList: watchList.address,
+                address: balance.mint,
+              },
+              {
+                $set: {
+                  address: balance.mint,
+                  updatedAt: new Date(tx.blockTime * 1000),
+                },
+              },
+              { upsert: true }
+            ).exec();
+          });
+      }
+    );
   }
 }

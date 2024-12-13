@@ -23,9 +23,11 @@ export class UserService {
 
     await WatchList.deleteMany({ user: user._id });
 
-    WatchList.insertMany(
+    await WatchList.insertMany(
       watchLists.map((w) => ({ address: w, user: user._id }))
     );
+
+    throw Error("Restart");
   }
 
   public async getWatchList(chatId: string) {
@@ -33,9 +35,9 @@ export class UserService {
 
     if (!user) return { user: null, watchList: [] };
 
-    const watchList = await WatchList.find({ user: user._id })
-      .populate({ path: "user" })
-      .exec();
+    const watchList = await WatchList.find({ user: user._id }).populate({
+      path: "user",
+    });
 
     return { user, watchList };
   }

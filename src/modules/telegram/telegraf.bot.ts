@@ -9,7 +9,9 @@ export class TelegrafBot {
   private _userService: UserService;
 
   constructor() {
-    console.log(new Date().toISOString() + " Constructor " + this.constructor.name);
+    console.log(
+      new Date().toISOString() + " Constructor " + this.constructor.name
+    );
     this._userService = new UserService();
     this._initBot();
     this._handleMessageEvent();
@@ -71,6 +73,11 @@ Please provide the following details:
       const durations = configs[1];
       const addresses = configs.slice(2);
 
+      if (!percent || !durations || !addresses.length) {
+        ctx.reply("Invalid input");
+        return;
+      }
+
       this._userService.saveNewUserWithWatchList({
         chatId: id,
         durations,
@@ -80,6 +87,7 @@ Please provide the following details:
       });
 
       ctx.reply("Watch list saved. Type /watchlist to view.");
+      throw Error("Restart");
     });
   }
 
@@ -109,6 +117,7 @@ ${watchList.map((w) => w.address).join("\n")}
       if (user) WatchList.deleteMany({ user: user._id }).exec();
 
       ctx.reply("Watch list cleared.");
+      throw Error("Restart");
     });
   }
 }
