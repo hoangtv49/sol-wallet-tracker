@@ -3,6 +3,7 @@ import WatchList from "../../models/watchlist.model";
 import User from "../../models/user.model";
 import { UserService } from "../../services/user.service";
 import { Telegraf } from "telegraf";
+import TxLogs from "../../models/tx-log.model";
 
 export class TelegrafBot {
   private _bot: Telegraf;
@@ -114,7 +115,15 @@ ${watchList.map((w) => w.address).join("\n")}
     this.bot.command("clear", async (ctx) => {
       const user = await User.findOne({ chatId: ctx.from.id }).exec();
 
-      if (user) WatchList.deleteMany({ user: user._id }).exec();
+      const watchList = await WatchList.find({ user: user._id }).exec();
+
+      if (watchList.length) {
+        await TxLogs.deleteMany({
+          watchList: { $in: watchList.map((w) => w.address) },
+        });
+      }
+
+      if (user) await WatchList.deleteMany({ user: user._id });
 
       ctx.reply("Watch list cleared.");
       throw Error("Restart");

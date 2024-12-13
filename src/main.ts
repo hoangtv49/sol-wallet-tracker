@@ -31,7 +31,7 @@ class Crawler {
 
     if (watchLists.length) {
       for (const watchList of watchLists) {
-        this._solanaWeb3.listenOnLogs(watchList);
+        await this._solanaWeb3.listenOnLogs(watchList);
       }
     }
 
@@ -105,7 +105,7 @@ class Crawler {
             `
 🚨 <b>${key}</b> 🚨 
 
-Was bought by <b>${foundedPercent}%</b> of watch list:
+Was bought by <b>${foundedPercent.toFixed(2)}%</b> of watch list:
 
 ${val.map((v) => v.watchList).join("\n")}`,
             { parse_mode: "HTML" }

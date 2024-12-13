@@ -101,40 +101,56 @@ export class SolanaWeb3 {
   }
 
   public async listenOnLogs(watchList: any) {
-    this._connection.onLogs(
-      new PublicKey(watchList.address),
+    let pubKey;
 
-      async (logs) => {
-        const signature = logs.signature;
+    try {
+      pubKey = new PublicKey(watchList.address);
+    } catch (error) {
+      console.log("listenOnLogs", error);
+    }
 
-        const tx = await this._connection.getParsedTransaction(signature, {
-          commitment: "confirmed",
-          maxSupportedTransactionVersion: 0,
-        });
-        console.log(logs.signature, new Date(tx?.blockTime * 1000));
+    if (!pubKey) return;
 
-        tx?.meta?.postTokenBalances
-          ?.filter(
-            (b) =>
-              b.owner === watchList.address &&
-              b.mint !== "So11111111111111111111111111111111111111112"
-          )
-          .map(async (balance) => {
-            TxLogs.findOneAndUpdate(
-              {
-                watchList: watchList.address,
+    this._connection.onLogs(pubKey, async (logs) => {
+      const signature = logs.signature;
+
+      if (logs.err) return;
+
+      const transfer = logs.logs.filter((log) => log.includes("Transfer"));
+
+      if (!transfer.length) return;
+
+      const tx = await this._connection.getParsedTransaction(signature, {
+        commitment: "finalized",
+        maxSupportedTransactionVersion: 0,
+      });
+
+      tx?.meta?.postTokenBalances
+        ?.filter(
+          (b) =>
+            b.owner === watchList.address &&
+            b.mint !== "So11111111111111111111111111111111111111112"
+        )
+        .map(async (balance) => {
+          console.log(
+            balance.owner,
+            balance.mint,
+            new Date(tx.blockTime * 1000)
+          );
+          TxLogs.findOneAndUpdate(
+            {
+              watchList: watchList.address,
+              address: balance.mint,
+            },
+            {
+              $set: {
                 address: balance.mint,
+                updatedAt: new Date(tx.blockTime * 1000),
               },
-              {
-                $set: {
-                  address: balance.mint,
-                  updatedAt: new Date(tx.blockTime * 1000),
-                },
-              },
-              { upsert: true }
-            ).exec();
-          });
-      }
-    );
+            },
+            { upsert: true }
+          ).exec();
+        });
+    });
   }
 }

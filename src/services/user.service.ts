@@ -26,8 +26,6 @@ export class UserService {
     await WatchList.insertMany(
       watchLists.map((w) => ({ address: w, user: user._id }))
     );
-
-    throw Error("Restart");
   }
 
   public async getWatchList(chatId: string) {
