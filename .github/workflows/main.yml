@@ -4,7 +4,7 @@ on:
     branches: [ "master" ]
 jobs:
   deploy-master:
-    runs-on: hoangtv-asus
+    runs-on: window-linux
     steps:
       - uses: actions/checkout@v2
       - name: Copy Code
